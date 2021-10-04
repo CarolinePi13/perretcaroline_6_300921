@@ -114,6 +114,7 @@ exports.likeASauce=(req, res, next) =>{
         req.params.id
     , 
     {
+        likes:1,
         $addToSet:{ usersLiked:req.body.userId}
 
     },
@@ -130,7 +131,8 @@ exports.likeASauce=(req, res, next) =>{
     {
         $pull:{usersLiked:req.body.userId,
        usersDisliked:req.body.userId }
-    }
+    },
+    {new:true},
     
     )
     .then(()=> res.status(200).json({ message: "like removed!"})) 
@@ -139,10 +141,13 @@ exports.likeASauce=(req, res, next) =>{
     Sauce.findByIdAndUpdate(
         req.params.id
     , 
-    {
+   
+    {   
+        likes:-1,
         $addToSet:{usersDisliked:req.body.userId}
 
-    }
+    },
+    {new:true},
     
     )
     .then(()=> res.status(200).json({ message: "dilike added!"})) 
