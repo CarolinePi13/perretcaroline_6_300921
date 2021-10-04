@@ -1,8 +1,18 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/user');
-
+const sauceRoutes = require('./routes/sauce');
 const app = express();
+const path =require('path');
+
+
+mongoose.connect(`mongodb+srv://Caropi13:cNVf5U2yiXDUJPUN@cluster0.j0rpp.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`,
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('connexion to MongoDb was successful!'))
+  .catch(() => console.log('connexion to MongoDb failed!'));
+
+  app.use(express.json());
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
@@ -10,18 +20,12 @@ app.use((req, res, next) => {
   next();
 });
 
-mongoose.connect(`mongodb+srv://Caropi13:cNVf5U2yiXDUJPUN@cluster0.j0rpp.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`,
-  { useNewUrlParser: true,
-    useUnifiedTopology: true })
-  .then(() => console.log('Connexion to MongoDB failed !'))
-  .catch(() => console.log('Connexion to MongoDB was successful!'));
-
-app.use((req, res) => {
-   res.json({ message: 'Your request was successful !' }); 
-});
-app.use(express.json());
 
 
+
+
+
+app.use('/api/sauces', sauceRoutes)
 app.use('/api/auth', userRoutes);
-
+app.use('/images',express.static(path.join(__dirname, 'images')) );
 module.exports = app;
