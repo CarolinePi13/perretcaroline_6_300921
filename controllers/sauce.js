@@ -1,19 +1,17 @@
 const Sauce = require("../models/sauce");
 const fs = require('fs');
-const { Console } = require("console");
 
-const ObjectID = require("mongoose").Types.ObjectId;
 
 exports.createSauce= (req, res, next) =>{
-const sauceObject = JSON.parse(req.body.sauce); 
+    
+req.body.sauce=JSON.parse(req.body.sauce)
 
   const sauce = new Sauce({
-    ...sauceObject,
-    
+   ...req.body.sauce,
     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
   });
+  console.log(req.body.sauce);
   
-  console.log(sauce);
   sauce.save().then(
     () => 
       res.status(201).json({
@@ -67,6 +65,7 @@ exports.modifyASauce=(req, res, next) =>{
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     }:{...req.body};
+
        Sauce.updateOne({
            _id: req.params.id
        }, {...sauceObject, _id:req.params.id})
@@ -83,10 +82,11 @@ exports.modifyASauce=(req, res, next) =>{
 }
 
 exports.deleteASauce=(req, res, next) =>{
+    
     Sauce.findOne({_id:req.params.id})
     .then((sauce)=>{
         const filename = sauce.imageUrl.split('/images/')[1];
-        fs.unlink(`images/${filename}`,()=>{
+        fs.unlink("images/"+ filename,()=>{
             Sauce.deleteOne({_id: req.params.id})
             .then(() => res.status(200).json({ message: 'objet deleted'}))
             .catch(
@@ -107,53 +107,42 @@ exports.deleteASauce=(req, res, next) =>{
 };
 
 exports.likeASauce=(req, res, next) =>{
-    
-    if (req.body.like==1){
+    const thisUser= req.body.userId
+  Sauce.findOne({_id: req.params.id}).then((sauce)=>{
+      
+     if (req.body.like==1){
+        
+        sauce.usersLiked.push(thisUser)
+        sauce.likes++
+        sauce.save()
+        
+     }else if(req.body.like==0){
+        if(sauce.usersLiked.includes(thisUser)){
+           let index= sauce.usersLiked.indexOf(thisUser)
+          sauce.usersLiked.splice(index,1) 
+          sauce.likes--
+          sauce.save()
+        }else if (sauce.usersDisliked.includes(thisUser)){
+            let index=sauce.usersDisliked.indexOf(thisUser)
+            sauce.usersDisliked.splice(index,1)
+            sauce.dislikes--
+            sauce.save()
+        } 
+        
+      
 
-    Sauce.findByIdAndUpdate(
-        req.params.id
-    , 
-    {
-        likes:1,
-        $addToSet:{ usersLiked:req.body.userId}
-
-    },
-    {new:true},
+     }else if(req.body.like ==-1){
+        sauce.usersDisliked.push(thisUser)
+        sauce.dislikes++
+        sauce.save()
+     }
+  }).then(()=> res.status(200).json({ message: "rating was successful!"}))
+  .catch(
+    (error) =>{
+        res.status(400).json({
+            error:error
+        });
+    }
+);
     
-    )
-    .then(()=> res.status(200).json({ message: "like added!"})) 
-}else if(req.body.like==0){
-
-    Sauce.findByIdAndUpdate(
-        req.params.id
-    , 
-   
-    {
-        $pull:{usersLiked:req.body.userId,
-       usersDisliked:req.body.userId }
-    },
-    {new:true},
-    
-    )
-    .then(()=> res.status(200).json({ message: "like removed!"})) 
-
-}else if (req.body.like==-1){
-    Sauce.findByIdAndUpdate(
-        req.params.id
-    , 
-   
-    {   
-        likes:-1,
-        $addToSet:{usersDisliked:req.body.userId}
-
-    },
-    {new:true},
-    
-    )
-    .then(()=> res.status(200).json({ message: "dilike added!"})) 
-}
-   
-   
-    
-     
 };

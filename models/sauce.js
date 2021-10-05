@@ -16,7 +16,7 @@ const sauceSchema = mongoose.Schema({
         type:String,
         required:true,
         maxlength: 200,
-        minlength: 10
+        minlength: 5
     },
     mainPepper:{
         type:String,
