@@ -13,10 +13,17 @@
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "express-mongo-sanitize": "^2.1.0",
+    "express-rate-limit": "^5.4.1",
+    "helmet": "^4.6.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.8",
     "mongoose-unique-validator": "^2.0.3",
     "multer": "^1.4.3",
-    "nodemon": "^2.0.13"
+    "node-mongoose-validator": "^1.2.0",
+    "nodemon": "^2.0.13",
+    "password-validator": "^5.1.1",
+    "validator": "^13.6.0",
+    "xss-clean": "^0.1.1"
   }
 }

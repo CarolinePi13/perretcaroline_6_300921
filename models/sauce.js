@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
+const validator = require('validator');
 
 const sauceSchema = mongoose.Schema({
     userId:{
@@ -6,29 +8,37 @@ const sauceSchema = mongoose.Schema({
     },
     name:{
         type:String, 
-        required:true
+        required:true,
+        unique:[true, 'this sauce already exists'],
+        
     },
+
     manufacturer:{
         type:String,
-        required:true
+        required:true,
+        
     },
     description:{
         type:String,
         required:true,
-        maxlength: 200,
-        minlength: 5
+        maxlength: [200,'this field cannnot contain more than 200 characters'],
+        minlength: [5,'this field must contain at least 5 characters']
+       
     },
     mainPepper:{
         type:String,
-        required: true
+        required: true,
+        maxlength:[50,'this field cannnot contain more than 50 characters'],
+        
     },
     imageUrl:{
         type:String,
+        required:true,
        
     },
     heat:{
         type:Number,
-        required:true
+        required:true,
     },
     likes:{
         type:Number,
@@ -50,5 +60,5 @@ const sauceSchema = mongoose.Schema({
     },
     
 })
-
+sauceSchema.plugin(uniqueValidator);
 module.exports = mongoose.model("Sauce", sauceSchema);

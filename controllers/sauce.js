@@ -1,6 +1,7 @@
 const Sauce = require("../models/sauce");
 const fs = require('fs');
 
+const jwt = require('jsonwebtoken');
 
 exports.createSauce= (req, res, next) =>{
     
@@ -10,8 +11,7 @@ req.body.sauce=JSON.parse(req.body.sauce)
    ...req.body.sauce,
     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
   });
-  console.log(req.body.sauce);
-  
+ 
   sauce.save().then(
     () => 
       res.status(201).json({
@@ -22,7 +22,7 @@ req.body.sauce=JSON.parse(req.body.sauce)
     (error) => {
       res.status(400).json({
         error: error,
-        message :'something went wrong with the sauce creation'
+        
 
       });
     }
@@ -60,7 +60,13 @@ exports.allSauces=(req, res, next) =>{
 };
 
 exports.modifyASauce=(req, res, next) =>{
-    const sauceObject = req.file? 
+    
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
+    if(req.body.userId==userId){
+
+const sauceObject = req.file? 
     {
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
@@ -78,13 +84,23 @@ exports.modifyASauce=(req, res, next) =>{
         }
     );
 
+}else{
+    res.status(401).json({message:"unauthorized request"})
+}
+    
+
     
 }
 
 exports.deleteASauce=(req, res, next) =>{
     
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
+    
     Sauce.findOne({_id:req.params.id})
     .then((sauce)=>{
+        if(sauce.userId==userId){
         const filename = sauce.imageUrl.split('/images/')[1];
         fs.unlink("images/"+ filename,()=>{
             Sauce.deleteOne({_id: req.params.id})
@@ -96,7 +112,9 @@ exports.deleteASauce=(req, res, next) =>{
                     });
                 });
         })
-    })
+    }else{
+        res.status(401).json({message:"unauthorized request"})
+    }})
     .catch(
         (error) =>{
             res.status(400).json({

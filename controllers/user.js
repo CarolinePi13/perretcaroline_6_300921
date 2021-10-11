@@ -1,9 +1,20 @@
 const bcrypt =require('bcrypt');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+var passwordValidator = require('password-validator');
+
+var passwordSchema = new passwordValidator();
+passwordSchema
+.is().min(8)                                    // Minimum length 8
+.is().max(20)                                  // Maximum length 20
+.has().uppercase(1)                              // Must have uppercase letters
+.has().lowercase(1)                              // Must have lowercase letters
+.has().digits(1)                                // Must have at least 1 digit
+.has().not().spaces()                           // Should not have spaces
 
 exports.signup= (req, res, next) =>{
-    bcrypt.hash(req.body.password, 10).then(
+  if (passwordSchema.validate(req.body.password)){
+bcrypt.hash(req.body.password, 10).then(
         (hash)=>{
             const user = new User({
                 email: req.body.email,
@@ -18,12 +29,16 @@ exports.signup= (req, res, next) =>{
             ).catch(
                 error => {
                 res.status(500).json({
-                    error:error,
-                    
+                    error:error
                 });
             })
         }
     );
+
+  }else{
+    return res.status(400).json('le mot de passe doit contenir au moins une majuscule, une min uscule, et un chiffre, il doit faire entre 8 et 20 caracteres')
+  }
+    
 };
 
 exports.login= (req, res, next) =>{
