@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
-const validator = require('validator');
+
 
 const sauceSchema = mongoose.Schema({
     userId:{
@@ -9,8 +9,9 @@ const sauceSchema = mongoose.Schema({
     name:{
         type:String, 
         required:true,
-        unique:[true, 'this sauce already exists'],
-        
+        unique:true,
+        uniqueCaseInsensitive: true
+        //cannot add twice the same sauce
     },
 
     manufacturer:{
@@ -60,5 +61,10 @@ const sauceSchema = mongoose.Schema({
     },
     
 })
-sauceSchema.plugin(uniqueValidator);
+
+
+
+sauceSchema.plugin(uniqueValidator, { message: `Error, expected {VALUE
+} to be unique.`});
+
 module.exports = mongoose.model("Sauce", sauceSchema);

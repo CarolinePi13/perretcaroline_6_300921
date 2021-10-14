@@ -3,6 +3,8 @@ const fs = require('fs');
 
 const jwt = require('jsonwebtoken');
 
+
+
 exports.createSauce= (req, res, next) =>{
     
 req.body.sauce=JSON.parse(req.body.sauce)
@@ -22,13 +24,13 @@ req.body.sauce=JSON.parse(req.body.sauce)
     (error) => {
       res.status(400).json({
         error: error,
-        
+        message: 'something went wrong with the sauce creation'
 
       });
     }
   );
 };
-
+// call one sauce
 exports.oneSauce=(req, res, next) =>{
     Sauce.findOne({
         _id:req.params.id
@@ -44,7 +46,7 @@ exports.oneSauce=(req, res, next) =>{
         );
     
 };
-
+// call all sauces
 exports.allSauces=(req, res, next) =>{
     Sauce.find().then(
         (sauces)=>{
@@ -60,7 +62,7 @@ exports.allSauces=(req, res, next) =>{
 };
 
 exports.modifyASauce=(req, res, next) =>{
-    
+  //checks if the sauce userId is the same as current user  
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
@@ -93,7 +95,7 @@ const sauceObject = req.file?
 }
 
 exports.deleteASauce=(req, res, next) =>{
-    
+    //checks if the sauce userId is the same as current user  
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
@@ -124,6 +126,8 @@ exports.deleteASauce=(req, res, next) =>{
     );
 };
 
+
+//allows to like, unlike a sauce
 exports.likeASauce=(req, res, next) =>{
     const thisUser= req.body.userId
   Sauce.findOne({_id: req.params.id}).then((sauce)=>{
@@ -135,17 +139,19 @@ exports.likeASauce=(req, res, next) =>{
         sauce.save()
         
      }else if(req.body.like==0){
-        if(sauce.usersLiked.includes(thisUser)){
-           let index= sauce.usersLiked.indexOf(thisUser)
-          sauce.usersLiked.splice(index,1) 
-          sauce.likes--
-          sauce.save()
-        }else if (sauce.usersDisliked.includes(thisUser)){
-            let index=sauce.usersDisliked.indexOf(thisUser)
-            sauce.usersDisliked.splice(index,1)
-            sauce.dislikes--
+         //if the userID is in the usersliked array removes it from that array, and likes--
+            if(sauce.usersLiked.includes(thisUser)){
+            let index= sauce.usersLiked.indexOf(thisUser)
+            sauce.usersLiked.splice(index,1) 
+            sauce.likes--
             sauce.save()
-        } 
+        //if the userID is in the usersDisliked removes it from that array, and dislikes--
+            }else if (sauce.usersDisliked.includes(thisUser)){
+                let index=sauce.usersDisliked.indexOf(thisUser)
+                sauce.usersDisliked.splice(index,1)
+                sauce.dislikes--
+                sauce.save()
+            } 
         
       
 

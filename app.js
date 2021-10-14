@@ -15,7 +15,6 @@ mongoose.connect(`mongodb+srv://Caropi13:cNVf5U2yiXDUJPUN@cluster0.j0rpp.mongodb
     useUnifiedTopology: true })
   .then(() => console.log('connexion to MongoDb was successful!'))
   .catch(() => console.log('connexion to MongoDb failed!'));
-
 app.use(express.json());
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,16 +23,25 @@ app.use((req, res, next) => {
   next();
 });
 
+
+
+//data sanitization against noSQL query injection
+app.use(mongoSanitize());
+//data sanitization against XXS
+app.use(xss());
+//proctection against robots inputs attacks
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100 // limit each IP to 100 requests per windowMs
 });
 
 app.use(limiter);
+
 app.use(helmet());
-app.use(mongoSanitize());
-app.use(xss());
+
+
 app.use('/api/sauces', sauceRoutes)
 app.use('/api/auth', userRoutes);
 app.use('/images',express.static(path.join(__dirname, 'images')) );
+
 module.exports = app;
