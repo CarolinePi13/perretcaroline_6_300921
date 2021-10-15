@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 const validator = require('validator');
 
-const mongooseErrors = require('mongoose-errors')
+
 
 //Model of the user object
 const userSchema = mongoose.Schema({

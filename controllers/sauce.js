@@ -1,8 +1,9 @@
 const Sauce = require("../models/sauce");
 const fs = require('fs');
-
+const mongooseError = require('mongoose-error');
 const jwt = require('jsonwebtoken');
-
+var MongoErrors = require('mongo-errors');
+console.log(MongoErrors.DuplicateKey); // 11000
 
 
 exports.createSauce= (req, res, next) =>{
@@ -18,7 +19,9 @@ req.body.sauce=JSON.parse(req.body.sauce)
     () => 
       res.status(201).json({
         message: 'Sauce saved successfully!'
-      })
+      }),(err) =>{
+          throw mongooseError(err, {DuplicateKey: 'This sauce already exists'})
+      }
     
   ).catch(
     (error) => {

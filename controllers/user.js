@@ -52,7 +52,8 @@ exports.login= (req, res, next) =>{
        
             if(!user){// the email does not match a registered email in the db
               return res.status(401).json({
-                error: new Error('user unknown')
+                error: new Error('user unknown'),
+                
             })};
 
               
