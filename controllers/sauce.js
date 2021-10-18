@@ -1,7 +1,7 @@
 const Sauce = require("../models/sauce");
 const fs = require('fs');
 const mongooseError = require('mongoose-error');
-const jwt = require('jsonwebtoken');
+
 var MongoErrors = require('mongo-errors');
 console.log(MongoErrors.DuplicateKey); // 11000
 
@@ -66,10 +66,8 @@ exports.allSauces=(req, res, next) =>{
 
 exports.modifyASauce=(req, res, next) =>{
   //checks if the sauce userId is the same as current user  
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-    if(req.body.userId==userId){
+    
+    if(req.body.userId==req.token.userId){
 
 const sauceObject = req.file? 
     {
@@ -93,19 +91,15 @@ const sauceObject = req.file?
     res.status(401).json({message:"unauthorized request"})
 }
     
-
-    
 }
 
 exports.deleteASauce=(req, res, next) =>{
     //checks if the sauce userId is the same as current user  
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+  
     
     Sauce.findOne({_id:req.params.id})
     .then((sauce)=>{
-        if(sauce.userId==userId){
+        if(sauce.userId==req.token.userId){
         const filename = sauce.imageUrl.split('/images/')[1];
         fs.unlink("images/"+ filename,()=>{
             Sauce.deleteOne({_id: req.params.id})

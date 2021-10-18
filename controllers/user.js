@@ -2,7 +2,7 @@ const bcrypt =require('bcrypt');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 var passwordValidator = require('password-validator');
-
+require('dotenv').config()
 //establishes  a set schema for the password
 var passwordSchema = new passwordValidator();
 passwordSchema
@@ -52,7 +52,7 @@ exports.login= (req, res, next) =>{
        
             if(!user){// the email does not match a registered email in the db
               return res.status(401).json({
-                error: new Error('user unknown'),
+                message:"user unknown"
                 
             })};
 
@@ -62,11 +62,11 @@ exports.login= (req, res, next) =>{
                     if (!valid){// the password is incorrect
                         
                       return res.status(401).json({
-                          error: new Error('le mot de passe est incorrect')
+                          message:"the password is incorrect"
                       })};
                         
                     
-                const token = jwt.sign({userId :user._id}, 'RANDOM_TOKEN_SECRET',{expiresIn:'24h'});// a random token is created
+                const token = jwt.sign({userId :user._id}, process.env.TOKEN_KEY,{expiresIn:'24h'});// a random token is created
                    res.status(200).json({
                        userId : user._id,
                        token:token
