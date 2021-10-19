@@ -1,27 +1,45 @@
 const Sauce = require("../models/sauce");
 const fs = require('fs');
 const mongooseError = require('mongoose-error');
-
 var MongoErrors = require('mongo-errors');
 console.log(MongoErrors.DuplicateKey); // 11000
 
 
 exports.createSauce= (req, res, next) =>{
-    
+//sends the object to the db in the appropriate format (string to object)
 req.body.sauce=JSON.parse(req.body.sauce)
 
   const sauce = new Sauce({
+
    ...req.body.sauce,
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-  });
- 
-  sauce.save().then(
+    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,//sets the route to the images folder
+  })
+  
+  sauce.save().then(// saves the object in the db
     () => 
       res.status(201).json({
         message: 'Sauce saved successfully!'
       }),(err) =>{
-          throw mongooseError(err, {DuplicateKey: 'This sauce already exists'})
-      }
+          console.error(err);
+         res.status(403).json
+         ({
+             message:"erreur cette sauce existe deja"
+         })
+         const filename = sauce.imageUrl.split('/images/')[1];
+        fs.unlink("images/"+ filename,()=>{
+            Sauce.deleteOne({_id: sauce._id})
+            .then(() => res.status(200).json({ message: 'image deleted'}))
+            .catch(
+                (error) =>{
+                    res.status(400).json({
+                        error:error
+                    });
+                });
+        })
+
+
+        //   throw mongooseError(err, {DuplicateKey: 'This sauce already exists'})
+      }//catches duplicate key mongoose error
     
   ).catch(
     (error) => {
@@ -69,15 +87,15 @@ exports.modifyASauce=(req, res, next) =>{
     
     if(req.body.userId==req.token.userId){
 
-const sauceObject = req.file? 
+    const sauceObject = req.file? // if the requests contains a file parses the body of the request
     {
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    }:{...req.body};
+    }:{...req.body};// if not sends it as an object
 
        Sauce.updateOne({
            _id: req.params.id
-       }, {...sauceObject, _id:req.params.id})
+       }, {...sauceObject, _id:req.params.id})//passes either one whether it contains a file or not
        .then(()=> res.status(200).json({ message: "Object modified !"}))
        .catch(
         (error) =>{
@@ -149,9 +167,6 @@ exports.likeASauce=(req, res, next) =>{
                 sauce.dislikes--
                 sauce.save()
             } 
-        
-      
-
      }else if(req.body.like ==-1){
         sauce.usersDisliked.push(thisUser)
         sauce.dislikes++

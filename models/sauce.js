@@ -60,10 +60,22 @@ const sauceSchema = mongoose.Schema({
             ]
     },
     
-})
+    
+},{ emitIndexErrors: true});
 
 
+var handleE11000 = function(error, res, next) {
+    if (error.name === 'MongoServerError' && error.code === 11000) {
+      next(new Error('There was a duplicate key error'));
+    } else {
+      next();
+    }
+  };
 
+  sauceSchema.post('save', handleE11000);
+  sauceSchema.post('update', handleE11000);
+  sauceSchema.post('findOneAndUpdate', handleE11000);
+  sauceSchema.post('insertMany', handleE11000);
 sauceSchema.plugin(uniqueValidator, { message: `Error, expected {VALUE
 } to be unique.`});
 
